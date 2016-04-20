@@ -42,9 +42,9 @@ str(datawithshots)
 ```
 
 ### Correlations 
-* shot_distance = $\sqrt{loc_x^2 + loc_y^2}$
+* shot_distance = (loc_x$^2$ + loc_y$^2$)$^{1/2}$
 * lat and lon are the "same" as loc_x and loc_y
-* game_id has a correlation with game_date but we do not understand what it is
+* game_id has a correlation with playoffs and game_date
 
 ### Variables to take
 * action_type
@@ -106,6 +106,12 @@ str(datawithshots)
   9   Driving Floating Bank Jump Shot
 ```
 * game_date or days since start
+* time left in game 
+```
+timeleftingame <- (4-ifelse(datawithshots$period>4, 4, datawithshots$period))*15 + datawithshots$minutes_remaining + as.integer(datawithshots$seconds_remaining/60)
+```
+* Court position loc_x and loc_y
+* Matchup
 
 ## Analysis
 Displaying shot made percentage as a function of different parameters: 
@@ -155,15 +161,14 @@ ggplot(permade, aes(x=xaxis, y=percenmade)) +
                parse = TRUE)  #  (by default includes 95% confidence region)
 ```
 
+* Not a strong dependance of percentage completion as a function of days since KB started playing:
 ![Percent Made](PercentMadeDays.png)
-
-Not a strong dependance of percentage completion as a function of days since KB started playing!
-
+* A strong dependance of percentage completion as a function of type of shot:
 ![Percent Made](PercentMadeTypeShot.png)
-
-A strong dependance of percentage completion as a function of type of shot.
-
+* KB is not a clutch player: 
 ![Percent Made](PercentMadeTimeLeft.png)
-
-KB is not a clutch player.
-
+* Positioning in the court matters:
+![Percent Made](PercentMadeCourtPos.png)
+* Games in playoffs do not matter since shot completion percentage changes from 44.64% to 44.46% between playoff and non-playoff games
+* Matchup matters for KB:
+![Percent Made](PercentMadeMatchup.png)

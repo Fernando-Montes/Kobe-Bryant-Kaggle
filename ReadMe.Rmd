@@ -42,30 +42,128 @@ str(datawithshots)
 ```
 
 ### Correlations 
-* shot_distance = sqrt(loc_x^2 + loc_y^2)
+* shot_distance = $\sqrt{loc_x^2 + loc_y^2}$
 * lat and lon are the "same" as loc_x and loc_y
+* game_id has a correlation with game_date but we do not understand what it is
 
 ### Variables to take
 * action_type
+```
+ 27                         Jump Shot
+  6                 Driving Dunk Shot
+ 28                        Layup Shot
+ 42                 Running Jump Shot
+ 34                 Reverse Dunk Shot
+ 48                    Slam Dunk Shot
+ 13                Driving Layup Shot
+ 57              Turnaround Jump Shot
+ 35                Reverse Layup Shot
+ 51                          Tip Shot
+ 41                 Running Hook Shot
+  1               Alley Oop Dunk Shot
+ 16                         Dunk Shot
+  2              Alley Oop Layup shot
+ 38                 Running Dunk Shot
+  8          Driving Finger Roll Shot
+ 43                Running Layup Shot
+ 20                  Finger Roll Shot
+ 18                Fadeaway Jump Shot
+ 22               Follow Up Dunk Shot
+ 24                         Hook Shot
+ 56              Turnaround Hook Shot
+ 26                    Jump Hook Shot
+ 40          Running Finger Roll Shot
+ 25                    Jump Bank Shot
+ 55       Turnaround Finger Roll Shot
+ 23                    Hook Bank Shot
+ 11                 Driving Hook Shot
+ 47                  Running Tip Shot
+ 45        Running Reverse Layup Shot
+  7    Driving Finger Roll Layup Shot
+ 17                Fadeaway Bank shot
+ 30                  Pullup Jump shot
+ 19            Finger Roll Layup Shot
+ 54          Turnaround Fadeaway shot
+ 14        Driving Reverse Layup Shot
+ 15            Driving Slam Dunk Shot
+ 49               Step Back Jump shot
+ 52              Turnaround Bank shot
+ 36            Reverse Slam Dunk Shot
+ 21                Floating Jump shot
+ 33            Putback Slam Dunk Shot
+ 37                 Running Bank shot
+  5                 Driving Bank shot
+ 12                 Driving Jump shot
+ 32                Putback Layup Shot
+ 31                 Putback Dunk Shot
+ 39    Running Finger Roll Layup Shot
+ 29                  Pullup Bank shot
+ 46            Running Slam Dunk Shot
+  4                Cutting Layup Shot
+ 10        Driving Floating Jump Shot
+ 44         Running Pull-Up Jump Shot
+ 50                    Tip Layup Shot
+  9   Driving Floating Bank Jump Shot
+```
+* game_date or days since start
 
 ## Analysis
-Displaying shot made percentage as a function of game_id: 
+Displaying shot made percentage as a function of different parameters: 
 
 ```
+madeshots<-c()
+takenshot<-c()
+
+# Decide what parameter to use
+param<-"action_type"
+# param<-"game_date"
+
+for(x in unique(datawithshots[[param]])){
+    madeshots<-c(madeshots,sum(datawithshots$shot_made_flag[datawithshots[[param]]==x]))
+    takenshot<-c(takenshot,sum(!is.na(datawithshots$shot_made_flag[datawithshots[[param]]==x])))
+}
+percentmade<-madeshots*100/takenshot
+
+# Defining new parameter dayssincestart
+gamedate <- as.vector(unique(datawithshots$game_date))
+gamedate <- sort(as.Date.character(gamedate))
+dayssincestart <- as.numeric(gamedate - gamedate[1])
+
+# Defining new parameter timeleftingame
+timeleftingame <- ((4-datawithshots$period)*15 + datawithshots$minutes_remaining)*60 + datawithshots$seconds_remaining
+
+# Decide what to use on x-axis in the next plot
+x_axis <- as.numeric(unique(datawithshots$action_type))
+# x_axis <- dayssincestart
+# x_axis <-timeleftingame
+
 library(ggpmisc)
-permade <- data.frame(time = 1:length(as.vector(percentmade)), percenmade = as.vector(percentmade))
+# Plot of percentage shots done versus dayssincestart 
+permade <- data.frame(xaxis = x_axis, percenmade = as.vector(percentmade))
+permade <- permade[order(permade$xaxis),]
 my.formula <- y ~ x
-ggplot(permade, aes(x=time, y=percenmade)) + 
+
+ggplot(permade, aes(x=xaxis, y=percenmade)) + 
   geom_point(shape = 1, col="blue") +
+  xlab("Days since start") +
+  ylab("shot made percentage") +
   geom_smooth(method=lm, formula = my.formula) +
   stat_poly_eq(formula = my.formula,
                eq.with.lhs = "italic(h)~`=`~",
                eq.x.rhs = "~italic(z)",
                aes(label = ..eq.label..), 
-               parse = TRUE) 
-#  (by default includes 95% confidence region)
+               parse = TRUE)  #  (by default includes 95% confidence region)
 ```
 
-![Percent Made](PercentMade.png)
-So, not a strong dependance of percentage completion as a function of game_id ~ time!
+![Percent Made](PercentMadeDays.png)
+
+Not a strong dependance of percentage completion as a function of days since KB started playing!
+
+![Percent Made](PercentMadeTypeShot.png)
+
+A strong dependance of percentage completion as a function of type of shot.
+
+![Percent Made](PercentMadeTimeLeft.png)
+
+KB is not a clutch player.
 

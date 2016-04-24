@@ -172,3 +172,22 @@ ggplot(permade, aes(x=xaxis, y=percenmade)) +
 * Games in playoffs do not matter since shot completion percentage changes from 44.64% to 44.46% between playoff and non-playoff games
 * Matchup matters for KB:
 ![Percent Made](PercentMadeMatchup.png)
+
+* GLM predictions as a function of action_type:
+![GLM_actiontype](PredictionGLM_actiontype.png)
+
+* We noticed that our results show a dichotomy in the log-loss. We may need to do two models for the bad predictions. On top of that we noticed that as time into game increases there is a worsening of the bad predictions. We may need to add a variable referring to overtime. Following figures are gated in action_type = "Jump Shot":
+![loglossTime](LogLossTime.png)
+
+* There is also a worsening of bad predictions for the last few seasons:
+![logloss](LogLossDaysSince.png)
+
+* X and Y position:
+![logloss](LogLossX.png)
+![logloss](LogLossY.png)
+
+* The dichotomy is due to the fact that for some types of action_type (i.e. "Jump Shot") all the predictions are below 0.5.  Even when training the data only with that specific action_type, the predictions are all below 0.5:
+![matchup_glm_pred!JumpShot](matchup_glm_pred!JumpShot.png)
+The problem is that the shots made and shots not made are all over the place. It does not seem like a good model at all, however the log-loss value is 0.634!. "Displacing" the glm prediction in either direction only increased the log-loss value. When trying a tree prediction, the result "looks better" but the log-loss is 0.788.
+
+* Adding more variables (playoffs + shot_type + shot_zone_area) for training, do not eliminate (nor reduce) the problem. 

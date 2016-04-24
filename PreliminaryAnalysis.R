@@ -32,7 +32,18 @@ gamedate <- sort(as.Date.character(gamedate))
 dayssincestart <- as.numeric(gamedate - gamedate[1])
 
 # Defining new feature timeleftingame
-timeleftingame <- (4-ifelse(datawithshots$period>4, 4, datawithshots$period))*15 + datawithshots$minutes_remaining + as.integer(datawithshots$seconds_remaining/60)
+timeleftingame <- (4-ifelse(datawithshots$period>4, 4, datawithshots$period))*12 + datawithshots$minutes_remaining + as.integer(datawithshots$seconds_remaining/60)
+timeintogame<-c()
+for (x in seq_along(datawithshots$period)){
+  if (datawithshots$period[x]<5) {
+    tig<-datawithshots$period[x]*12 + (12-datawithshots$minutes_remaining[x]) +  (1-datawithshots$seconds_remaining[x]/60.)
+    timeintogame<-c(timeintogame,as.integer(tig))
+  }
+  else {
+    tig<-(48 + 5*(datawithshots$period[x]-5) + (5-datawithshots$minutes[x])) + 1 - datawithshots$seconds_remaining[x]/60.
+    timeintogame<-c(timeintogame,as.integer(tig))
+  }
+}
 
 # Defining new feature discrete positions
 min_x <- min(datawithshots$loc_x)
@@ -40,7 +51,7 @@ min_y <- min(datawithshots$loc_y)
 loc_x_disc <- as.integer((datawithshots$loc_x-min_x)/30)
 loc_y_disc <- as.integer((datawithshots$loc_y-min_y)/30)
 
-datawithshots <- cbind(datawithshots, timeleftingame, loc_x_disc, loc_y_disc)
+datawithshots <- cbind(datawithshots, timeleftingame, loc_x_disc, loc_y_disc, timeintogame)
 
 # Creating percentage shots made for one feature ----------------------------
 
@@ -105,3 +116,37 @@ library(lattice) # for levelplot()
 levelplot(percentmade, scales=list(tck=0, x=list(rot=90)), 
           col.regions=colorpanel(8, "white", "blue"), at=c(0,10,20,30,40,45,50,60,70), 
           main="Court position shot percentage", xlab="Court length [/3 ft]", ylab="Court width [/3 ft]")
+
+
+# Alternative ways to plot shots -----------------------
+# ------------------------------------------------------
+
+library(dplyr)
+library(ggplot2)
+data <- read.csv("data.csv", stringsAsFactors = TRUE)
+
+train <- data[!is.na(data$shot_made_flag),]
+test <- data[is.na(data$shot_made_flag),]
+
+# train$shot_made_flag <- as.factor(train$shot_made_flag)
+train$shot_made_flag <- factor(train$shot_made_flag, levels = c("1", "0"))
+
+#a plot to see accuracy by feature
+pplot <- function(feat) {
+  feat <- substitute(feat)
+  ggplot(data = train, aes_q(x = feat)) +
+    geom_bar(aes(fill = shot_made_flag), stat = "count", position = "fill") +
+    scale_fill_brewer(palette = "Set1", direction = -1) +
+    ggtitle(paste("accuracy by", feat))
+}
+
+# a plot to see position of the shot by feature
+courtplot <- function(feat) {
+  feat <- substitute(feat)
+  ggplot(data = train, aes(x = lon, y = lat)) +
+    geom_point(aes_q(color = feat), alpha = 0.7, size = 3) +
+    ggtitle(paste(feat)) +
+    ylim(c(33.7, 34.0883)) +
+    scale_color_brewer(palette = "Set1") +     
+    theme_void() 
+}

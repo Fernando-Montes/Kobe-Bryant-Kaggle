@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ## Goal 
-This data contains the location and circumstances of every field goal attempted by Kobe Bryant took during his 20-year career. Your task is to predict whether the basket went in (shot_made_flag).
+This data contains the location and circumstances of every field goal attempted by Kobe Bryant took during his 20-year career. The goal is to predict whether the basket went in (shot_made_flag).
 
 ## Data
 https://www.kaggle.com/c/kobe-bryant-shot-selection/data?data.csv.zip
@@ -191,3 +191,13 @@ ggplot(permade, aes(x=xaxis, y=percenmade)) +
 The problem is that the shots made and shots not made are all over the place. It does not seem like a good model at all, however the log-loss value is 0.634!. "Displacing" the glm prediction in either direction only increased the log-loss value. When trying a tree prediction, the result "looks better" but the log-loss is 0.788.
 
 * Adding more variables (playoffs + shot_type + shot_zone_area) for training, do not eliminate (nor reduce) the problem. 
+
+* Using a log-loss metric did not improve the problem significantly. The total log-loss value is still >0.60.
+
+## Things to try:
+
+- Forest tree:  Use features home/away and opponents as replacement of the matchup feature. Dump action_type categories with a small number of shots into one category
+
+- Train on basic_shot_type
+
+- Train different models and take optimal results as a function of subsets
